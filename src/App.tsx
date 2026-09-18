@@ -16,7 +16,7 @@ function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,loc
    if(sel===s){setSel(null);return}
    try{const g=new Chess(game.fen());const moving=g.get(sel as any);const promotion=moving?.type==='p'&&(s[1]==='8'||s[1]==='1')?'q':undefined;g.move({from:sel,to:s,...(promotion?{promotion}: {})});setSel(null);onMove(g)}
    catch{if(p?.color===game.turn())setSel(s);else setSel(null)}};
- return <group rotation={[-Math.PI/2,0,0]}>{squares.map(({s,p},i)=>{const x=(i%8)-3.5,y=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;return <group key={s} position={[x*1.1,0,y*1.1]} onClick={()=>click(s)}>
+ return <group>{squares.map(({s,p},i)=>{const x=(i%8)-3.5,y=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;return <group key={s} position={[x*1.1,0,y*1.1]} onClick={()=>click(s)}>
    <mesh position={[0,-.08,0]}><boxGeometry args={[1.05,.16,1.05]}/><meshStandardMaterial color={sel===s?'#d4a72c':legal.includes(s)?'#708f58':light?'#d8c29b':'#3b2d25'}/></mesh>
    {p&&<Piece p={p} attack={legal.includes(s)} selected={sel===s}/>}
    {legal.includes(s)&&!p&&<mesh position={[0,.02,0]}><cylinderGeometry args={[.11,.11,.035,16]}/><meshStandardMaterial color="#d4a72c" emissive="#8b6b32" emissiveIntensity={.8}/></mesh>}
