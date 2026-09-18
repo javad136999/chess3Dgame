@@ -13,6 +13,19 @@ function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,atta
  const gltf=useGLTF(REAL_PAWN_MODEL) as any;
  const root=useRef<any>(null);
  const model=useMemo(()=>SkeletonUtils.clone(gltf.scene),[gltf.scene]);
+ useEffect(()=>{
+  model.traverse((node:any)=>{
+   if(!node.isMesh||!node.material)return;
+   const materials=Array.isArray(node.material)?node.material:[node.material];
+   materials.forEach((mat:any)=>{
+    mat.metalness=Math.max(mat.metalness??0,.82);
+    mat.roughness=Math.min(mat.roughness??.5,.28);
+    mat.envMapIntensity=1.65;
+    if(mat.color)mat.color.multiplyScalar(dark?.58:.86);
+    mat.needsUpdate=true;
+   });
+  });
+ },[model,dark]);
  const {actions}=useAnimations(gltf.animations,root);
  useEffect(()=>{const names=Object.keys(actions||{}); const idle=names.find(n=>/idle|stand/i.test(n)); if(idle&&actions[idle]){actions[idle].reset().fadeIn(.2).play();return ()=>{actions[idle]?.fadeOut(.15)}}},[actions]);
  useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);const facing=dark?0:Math.PI;
@@ -116,5 +129,5 @@ export default function App(){
  return <main><header><div><h1>FANTASY CHESS 3D</h1><span>شطرنج فانتزی • نبرد آنلاین و آفلاین</span></div><div className="actions"><button className="modeBtn" onClick={()=>setMode(mode==='offline'?'online':'offline')}>{mode==='offline'?'🌐 آنلاین':'🎮 آفلاین'}</button><button onClick={()=>{setGame(newGame());setTimer({w:600,b:600});setMsg('بازی جدید شروع شد')}}>⚔ بازی جدید</button></div></header>
  <div className="onlinebar">{mode==='online'&&<><button onClick={newOnline}>🏰 ساخت اتاق</button><input value={room} onChange={e=>setRoom(e.target.value)} placeholder="شناسه اتاق"/><button onClick={join}>ورود</button>{roomId&&<button onClick={()=>navigator.clipboard?.writeText(window.location.origin+window.location.pathname+'?room='+roomId)}>🔗 کپی لینک</button>}</>}{msg&&<span>{msg}</span>}</div>
  <section className="hud"><div className={game.turn()==='w'?'turn active':'turn'}>♔ سفید <b>{fmt(timer.w)}</b></div><div className="status">{statusText(game)}</div><div className={game.turn()==='b'?'turn active':'turn'}>♚ سیاه <b>{fmt(timer.b)}</b></div></section>
- <div className="scene"><Canvas camera={{position:[-5.4,6.2,5.4],fov:42}}><ambientLight intensity={1.15}/><directionalLight position={[4,8,5]} intensity={3}/><pointLight position={[-5,4,-4]} intensity={1.5}/><Environment preset="sunset"/><Board game={game} onMove={move} locked={onlineLocked}/><ContactShadows position={[0,-.15,0]} opacity={.5} scale={12} blur={2}/><OrbitControls enablePan={false} enableRotate={false} minDistance={6} maxDistance={13} minPolarAngle={0.88} maxPolarAngle={0.88} minAzimuthAngle={-0.78} maxAzimuthAngle={-0.78} target={[0,0,0]}/></Canvas></div>
+ <div className="scene"><Canvas camera={{position:[-5.4,6.2,5.4],fov:42}}><ambientLight intensity={.72}/><directionalLight position={[4,8,5]} intensity={4.6} color="#fff1d0"/><directionalLight position={[-5,5,-4]} intensity={2.1} color="#6f86b8"/><pointLight position={[-5,4,-4]} intensity={2.2} color="#d28b4d"/><Environment preset="sunset"/><Board game={game} onMove={move} locked={onlineLocked}/><ContactShadows position={[0,-.15,0]} opacity={.5} scale={12} blur={2}/><OrbitControls enablePan={false} enableRotate={false} minDistance={6} maxDistance={13} minPolarAngle={0.88} maxPolarAngle={0.88} minAzimuthAngle={-0.78} maxAzimuthAngle={-0.78} target={[0,0,0]}/></Canvas></div>
  <footer><span>♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜</span><small>{mode==='online'?(roomId?'🌐 اتاق آنلاین فعال':'🌐 حالت آنلاین آماده'): '🎮 بازی آفلاین دو نفره'} {onlineLocked&&' • منتظر نوبت شما'}</small></footer></main>}
