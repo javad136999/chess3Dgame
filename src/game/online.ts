@@ -54,7 +54,8 @@ export async function getRoom(roomId: string) {
 
 export function subscribeRoom(roomId: string, onChange: (room: any) => void) {
   if (!supabase) return () => {};
-  const channel = supabase
+  const client = supabase;
+  const channel = client
     .channel('chess-room-' + roomId)
     .on(
       'postgres_changes',
@@ -68,7 +69,7 @@ export function subscribeRoom(roomId: string, onChange: (room: any) => void) {
     )
     .subscribe();
   return () => {
-    void supabase.removeChannel(channel);
+    void client.removeChannel(channel);
   };
 }
 
