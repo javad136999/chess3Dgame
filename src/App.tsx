@@ -41,6 +41,8 @@ function Piece({p,attack,selected,travel=[0,0,0]}:{p:any,attack:boolean,selected
 function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,locked?:boolean}){
  const [sel,setSel]=useState<string|null>(null);
  const [moving,setMoving]=useState<{from:string,to:string,capture:boolean}|null>(null);
+ const [moveProgress,setMoveProgress]=useState(0);
+ useEffect(()=>{if(!moving){setMoveProgress(0);return}let raf=0;const start=performance.now();const tick=(now:number)=>{const p=Math.min(1,(now-start)/420);setMoveProgress(p);if(p<1)raf=requestAnimationFrame(tick)};raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf)},[moving]);
  const legal=useMemo(()=>sel?game.moves({square:sel as any,verbose:true}).map((m:any)=>m.to):[],[game,sel]);
  const squares=useMemo(()=>{const a:any[]=[];for(let r=7;r>=0;r--)for(let c=0;c<8;c++){const sq=String.fromCharCode(97+c)+(r+1);a.push({sq,p:game.get(sq as any)});}return a},[game]);
  const click=(sq:string)=>{if(locked||moving)return;const p=game.get(sq as any);
