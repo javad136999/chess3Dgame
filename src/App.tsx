@@ -17,7 +17,37 @@ function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,atta
  useEffect(()=>{const names=Object.keys(actions||{}); const idle=names.find(n=>/idle|stand/i.test(n)); if(idle&&actions[idle]){actions[idle].reset().fadeIn(.2).play();return ()=>{actions[idle]?.fadeOut(.15)}}},[actions]);
  useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);const facing=dark?0:Math.PI;
   root.current.rotation.y=facing+(attack?(attackAngle+.22*strike):0);root.current.rotation.x=attack?-.18*strike:0});
- return <group ref={root} scale={.52} position={[0,.02,0]}><primitive object={model}/><group position={[0,.86,.12]} rotation={[Math.PI/2,0,0]}><mesh><cylinderGeometry args={[.018,.018,.76,8]}/><meshStandardMaterial color={dark?'#d7b35a':'#caa13e'} metalness={.85}/></mesh><mesh position={[0,.42,0]}><coneGeometry args={[.06,.18,8]}/><meshStandardMaterial color={dark?'#b8bcc8':'#ece5d2'} metalness={.75}/></mesh></group><group position={[0,.69,-.2]}><mesh rotation={[0,0,0]} scale={[.62,1,1]}><planeGeometry args={[.9,.95,8,8]}/><meshStandardMaterial color={dark?'#171922':'#3b3030'} metalness={.12} roughness={.82} side={2} transparent opacity={.94}/></mesh><mesh position={[0,.37,-.015]} scale={[.55,.32,1]}><planeGeometry args={[.9,.55,6,6]}/><meshStandardMaterial color={dark?'#252735':'#5a3b35'} metalness={.08} roughness={.92} side={2} transparent opacity={.92}/></mesh></group><group position={[.24,.55,.22]} rotation={[0,0,-.18]}><mesh><cylinderGeometry args={[.035,.045,.42,12]}/><meshStandardMaterial color={dark?'#c7ccd8':'#8d7350'} metalness={.65} roughness={.35}/></mesh><mesh position={[0,.2,0]}><cylinderGeometry args={[.16,.13,.055,16]}/><meshStandardMaterial color={dark?'#2d3340':'#b9a47a'} metalness={.78} roughness={.28}/></mesh></group><group position={[-.27,.56,.25]} rotation={[0,0,.16]}><mesh position={[0,.27,0]}><cylinderGeometry args={[.026,.035,.55,10]}/><meshStandardMaterial color={dark?'#d9b45b':'#caa13e'} metalness={.82}/></mesh><mesh position={[0,.56,0]} rotation={[0,0,0]}><coneGeometry args={[.065,.16,8]}/><meshStandardMaterial color={dark?'#cfd3dd':'#efe7d4'} metalness={.8}/></mesh><mesh position={[0,.02,0]}><torusGeometry args={[.09,.018,8,18]}/><meshStandardMaterial color={dark?'#9da4b4':'#8b6d43'} metalness={.75}/></mesh></group><group position={[0,.5,-.34]}><mesh rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.13,.18,.06,16]}/><meshStandardMaterial color={dark?'#202531':'#8d7653'} metalness={.7}/></mesh><mesh position={[0,.02,0]} rotation={[0,0,0]}><torusGeometry args={[.12,.025,10,20]}/><meshStandardMaterial color={dark?'#d7b35a':'#caa13e'} metalness={.85}/></mesh></group></group>;
+ const steel=dark?'#191c25':'#d7d8d4', edge=dark?'#a87432':'#b58b32', cloth=dark?'#10131b':'#eee7d5', glow=dark?'#ff9d2f':'#ffd36a';
+ return <group ref={root} scale={.48} position={[0,.02,0]}>
+  <primitive object={model}/>
+  <group position={[0,.92,.13]} rotation={[Math.PI/2,0,0]}>
+   <mesh><cylinderGeometry args={[.022,.022,.72,10]}/><meshStandardMaterial color={edge} metalness={.9} roughness={.22}/></mesh>
+   <mesh position={[0,.4,0]}><coneGeometry args={[.07,.2,8]}/><meshStandardMaterial color={steel} metalness={.88} roughness={.25}/></mesh>
+  </group>
+  <group position={[0,.72,-.2]}>
+   <mesh scale={[.68,1,1]}><planeGeometry args={[.92,1.02,8,8]}/><meshStandardMaterial color={cloth} roughness={.9} side={2} transparent opacity={.96}/></mesh>
+   <mesh position={[0,.38,-.02]} scale={[.58,.33,1]}><planeGeometry args={[.9,.58,6,6]}/><meshStandardMaterial color={dark?'#272a34':'#c9bd9f'} roughness={.95} side={2}/></mesh>
+  </group>
+  <group position={[.3,.57,.23]} rotation={[0,0,-.2]}>
+   <mesh><cylinderGeometry args={[.04,.05,.45,12]}/><meshStandardMaterial color={steel} metalness={.82} roughness={.25}/></mesh>
+   <mesh position={[0,.22,0]}><cylinderGeometry args={[.17,.14,.06,16]}/><meshStandardMaterial color={cloth} metalness={.65} roughness={.35}/></mesh>
+  </group>
+  <group position={[-.3,.58,.26]} rotation={[0,0,.16]}>
+   <mesh position={[0,.28,0]}><cylinderGeometry args={[.03,.038,.58,10]}/><meshStandardMaterial color={edge} metalness={.9} roughness={.2}/></mesh>
+   <mesh position={[0,.57,0]}><coneGeometry args={[.07,.17,8]}/><meshStandardMaterial color={steel} metalness={.9} roughness={.22}/></mesh>
+   <mesh position={[0,.02,0]}><torusGeometry args={[.1,.02,8,18]}/><meshStandardMaterial color={edge} metalness={.85}/></mesh>
+  </group>
+  <group position={[0,.98,.18]}>
+   <mesh><sphereGeometry args={[.24,20,14]}/><meshStandardMaterial color={steel} metalness={.8} roughness={.3}/></mesh>
+   <mesh position={[0,.02,.2]} rotation={[0,0,0]} scale={[1.15,.42,.18]}><boxGeometry args={[.3,.14,.16]}/><meshStandardMaterial color={steel} metalness={.88} roughness={.22}/></mesh>
+   <mesh position={[0,.2,0]}><coneGeometry args={[.09,.22,6]}/><meshStandardMaterial color={edge} metalness={.9} roughness={.2}/></mesh>
+   <mesh position={[0,.02,.205]} scale={[.7,.12,.4]}><boxGeometry args={[.28,.06,.04]}/><meshStandardMaterial color={glow} emissive={glow} emissiveIntensity={dark?2.8:1.6}/></mesh>
+  </group>
+  <group position={[0,.54,-.36]}>
+   <mesh rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.16,.2,.07,16]}/><meshStandardMaterial color={dark?'#262a35':'#ddd1b1'} metalness={.72}/></mesh>
+   <mesh position={[0,.02,0]}><torusGeometry args={[.14,.028,10,20]}/><meshStandardMaterial color={edge} metalness={.9}/></mesh>
+  </group>
+ </group>;
 }
 useGLTF.preload(REAL_PAWN_MODEL);
 
