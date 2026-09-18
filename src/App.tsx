@@ -7,56 +7,35 @@ import { ensureGuestSession, createRoom, joinRoom, getRoom, subscribeRoom, saveP
 import './styles.css';
 
 function Piece({p,attack,selected}:{p:any,attack:boolean,selected:boolean}){
- const dark=p.color==='b';
- const ref=useRef<any>(null);
- useFrame(({clock})=>{
-   if(!ref.current)return;
-   const t=clock.getElapsedTime();
-   const bob=Math.sin(t*(p.type==='p'?4.2:2.2))*(p.type==='p'?.035:.015);
-   const strike=attack?Math.sin(t*15)*.08:0;
-   ref.current.position.y=bob;
-   ref.current.rotation.z=attack?Math.sin(t*16)*.1:0;
-   const base=selected?1.08:1;
-   ref.current.scale.setScalar(base+(attack?.045+Math.max(0,strike):0));
- });
- const armor=dark?'#24252e':'#eee5d0';
- const metal=dark?'#12131a':'#d8c9a8';
- const gold='#c99a2e';
- const skin=dark?'#353640':'#9b7a55';
- const weapon=<mesh position={[0,.95,.3]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.025,.025,.85,10]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh>;
+ const dark=p.color==='b', ref=useRef<any>(null);
+ useFrame(({clock})=>{if(!ref.current)return;const t=clock.getElapsedTime();const bob=Math.sin(t*(p.type==='p'?4:2.2))*(p.type==='p'?.035:.015);ref.current.position.y=bob;ref.current.rotation.z=attack?Math.sin(t*16)*.1:0;const base=selected?1.08:1;ref.current.scale.setScalar(base+(attack?.05:0));});
+ const body=dark?'#242630':'#e8dfca', metal=dark?'#11131a':'#d5c6a6', gold='#d2a52f', skin=dark?'#36313a':'#8f6d4b';
+ const spear=<><mesh position={[0,.92,.32]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.028,.028,.9,10]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh><mesh position={[0,1.39,.32]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.08,.25,8]}/><meshStandardMaterial color={metal} metalness={.7}/></mesh></>;
  return <group ref={ref}>
-  <mesh position={[0,.1,0]}><cylinderGeometry args={[.38,.48,.2,24]}/><meshStandardMaterial color={metal} metalness={.65} roughness={.25}/></mesh>
-  {p.type==='b'?<>
-    <mesh position={[0,.58,0]} scale={[1.15,.95,1.35]}><sphereGeometry args={[.34,20,14]}/><meshStandardMaterial color={skin} roughness={.8}/></mesh>
-    <mesh position={[0,.82,.02]} scale={[.9,1.1,.9]}><sphereGeometry args={[.25,20,14]}/><meshStandardMaterial color={skin} roughness={.8}/></mesh>
-    <mesh position={[0,.95,.02]}><sphereGeometry args={[.12,16,10]}/><meshStandardMaterial color={armor}/></mesh>
-    <mesh position={[0,.48,-.28]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.07,.11,.45,16]}/><meshStandardMaterial color={skin}/></mesh>
-    <mesh position={[0,.52,.28]} rotation={[-Math.PI/2,0,0]}><coneGeometry args={[.11,.3,16]}/><meshStandardMaterial color={skin}/></mesh>
-    <mesh position={[0,.72,0]}><torusGeometry args={[.25,.035,10,24]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh>
-    <group position={[0,.98,0]} scale={.55}>
-      <mesh position={[0,.42,0]}><capsuleGeometry args={[.16,.32,6,10]}/><meshStandardMaterial color={armor} metalness={.35}/></mesh>
-      <mesh position={[0,.68,0]}><sphereGeometry args={[.14,16,12]}/><meshStandardMaterial color={armor}/></mesh>
-      <mesh position={[.12,.55,.12]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.018,.018,.8,8]}/><meshStandardMaterial color={gold}/></mesh>
-    </group>
-  </>:p.type==='n'?<>
-    <mesh position={[0,.42,0]} scale={[1.25,.72,1.55]}><sphereGeometry args={[.32,20,14]}/><meshStandardMaterial color={armor} metalness={.35}/></mesh>
-    <mesh position={[0,.58,-.15]} rotation={[0,.15,-.08]}><capsuleGeometry args={[.18,.5,8,14]}/><meshStandardMaterial color={armor} metalness={.35}/></mesh>
-    <mesh position={[0,.84,.02]}><sphereGeometry args={[.2,18,12]}/><meshStandardMaterial color={armor}/></mesh>
-    <mesh position={[0,.9,.19]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.04,.42,10]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh>
-    <mesh position={[0,.24,.25]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.07,.07,.5,12]}/><meshStandardMaterial color={metal}/></mesh>
-    {weapon}
-  </>:p.type==='p'?<>
-    <mesh position={[0,.45,0]}><capsuleGeometry args={[.18,.38,8,12]}/><meshStandardMaterial color={armor} metalness={.3}/></mesh>
-    <mesh position={[0,.78,0]}><sphereGeometry args={[.17,18,12]}/><meshStandardMaterial color={armor}/></mesh>
-    <mesh position={[0,.9,.06]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.05,.2,8]}/><meshStandardMaterial color={gold}/></mesh>
-    {weapon}
-  </>:<>
-    <mesh position={[0,.53,0]}><sphereGeometry args={[p.type==='k'?.3:p.type==='q'?.27:.22,20,14]}/><meshStandardMaterial color={armor} metalness={.3}/></mesh>
-    {p.type==='k'&&<><mesh position={[0,.98,0]}><torusGeometry args={[.22,.05,12,24]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh><mesh position={[0,1.2,0]}><boxGeometry args={[.07,.4,.07]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh></>}
-    {p.type==='q'&&<mesh position={[0,.98,0]}><coneGeometry args={[.16,.35,8]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh>}
-    {p.type==='r'&&<mesh position={[0,.92,0]}><cylinderGeometry args={[.17,.2,.36,8]}/><meshStandardMaterial color={armor} metalness={.5}/></mesh>}
-  </>}
-  {attack&&<Html center position={[0,1.3,0]}><span className="hit">⚔</span></Html>}
+  <mesh position={[0,.1,0]}><cylinderGeometry args={[.4,.5,.2,28]}/><meshStandardMaterial color={metal} metalness={.75} roughness={.22}/></mesh>
+  {p.type==='b'?<group>
+    <mesh position={[0,.48,0]} scale={[1.2,.82,1.35]}><sphereGeometry args={[.36,24,16]}/><meshStandardMaterial color={skin} roughness={.75}/></mesh>
+    <mesh position={[0,.78,0]}><sphereGeometry args={[.27,22,15]}/><meshStandardMaterial color={skin} roughness={.75}/></mesh>
+    <mesh position={[0,.94,0]}><sphereGeometry args={[.12,18,12]}/><meshStandardMaterial color={body}/></mesh>
+    <mesh position={[0,.54,-.27]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.08,.12,.42,16]}/><meshStandardMaterial color={skin}/></mesh>
+    <mesh position={[0,.54,.27]} rotation={[-Math.PI/2,0,0]}><coneGeometry args={[.12,.32,16]}/><meshStandardMaterial color={skin}/></mesh>
+    <mesh position={[0,.73,0]}><torusGeometry args={[.27,.035,12,28]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh>
+    <group position={[0,1.0,0]} scale={.58}><mesh position={[0,.4,0]}><capsuleGeometry args={[.16,.3,6,12]}/><meshStandardMaterial color={body} metalness={.35}/></mesh><mesh position={[0,.65,0]}><sphereGeometry args={[.14,18,12]}/><meshStandardMaterial color={body}/></mesh>{spear}</group>
+  </group>:p.type==='n'?<group>
+    <mesh position={[0,.42,0]} scale={[1.25,.7,1.5]}><sphereGeometry args={[.34,24,16]}/><meshStandardMaterial color={body} metalness={.4}/></mesh>
+    <mesh position={[0,.62,-.12]} rotation={[0,.18,-.1]}><capsuleGeometry args={[.19,.52,8,14]}/><meshStandardMaterial color={body} metalness={.4}/></mesh>
+    <mesh position={[0,.9,.02]}><sphereGeometry args={[.2,20,14]}/><meshStandardMaterial color={body}/></mesh>
+    <mesh position={[0,1.0,.2]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.045,.5,10]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh>
+    <mesh position={[0,.25,.27]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.075,.075,.52,12]}/><meshStandardMaterial color={metal}/></mesh>{spear}
+  </group>:p.type==='p'?<group>
+    <mesh position={[0,.43,0]}><capsuleGeometry args={[.2,.4,8,12]}/><meshStandardMaterial color={body} metalness={.35}/></mesh>
+    <mesh position={[0,.8,0]}><sphereGeometry args={[.18,20,14]}/><meshStandardMaterial color={body}/></mesh>
+    <mesh position={[0,.9,.03]}><torusGeometry args={[.13,.025,10,20]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh>{spear}
+  </group>:<group>
+    <mesh position={[0,.55,0]}><sphereGeometry args={[p.type==='k'?.31:p.type==='q'?.28:.23,24,16]}/><meshStandardMaterial color={body} metalness={.35}/></mesh>
+    {p.type==='k'?<><mesh position={[0,.98,0]}><torusGeometry args={[.23,.055,14,28]}/><meshStandardMaterial color={gold} metalness={.95}/></mesh><mesh position={[0,1.22,0]}><boxGeometry args={[.08,.45,.08]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh><mesh position={[0,1.36,0]}><boxGeometry args={[.28,.07,.07]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh></>:p.type==='q'?<mesh position={[0,1.02,0]}><coneGeometry args={[.18,.42,8]}/><meshStandardMaterial color={gold} metalness={.9}/></mesh>:p.type==='r'?<mesh position={[0,.95,0]}><cylinderGeometry args={[.18,.21,.4,10]}/><meshStandardMaterial color={body} metalness={.55}/></mesh>:null}
+  </group>}
+  {attack&&<Html center position={[0,1.35,0]}><span className="hit">⚔</span></Html>}
  </group>
 }
 function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,locked?:boolean}){
