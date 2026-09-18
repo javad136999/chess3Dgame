@@ -59,10 +59,10 @@ function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,loc
  };
  return <group>{squares.map(({sq,p},i)=>{const x=(i%8)-3.5,z=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;const isFrom=moving?.from===sq;const isCaptured=moving?.capture&&moving.to===sq;return <group key={sq} position={[x*1.1,0,z*1.1]} onClick={()=>click(sq)}>
    <mesh position={[0,-.08,0]}><boxGeometry args={[1.05,.16,1.05]}/><meshStandardMaterial color={sel===sq?'#d4a72c':legal.includes(sq)?'#708f58':light?'#d8c29b':'#3b2d25'}/></mesh>
-   {p&&<Piece p={p} attack={legal.includes(sq)} selected={sel===sq}/>}
+   {p&&!isCaptured&&<Piece p={p} attack={legal.includes(sq)||isFrom} selected={sel===sq} travel={isFrom&&moving?[(moving.to.charCodeAt(0)-moving.from.charCodeAt(0))*1.1*moveProgress,.12*Math.sin(Math.PI*moveProgress),(Number(moving.to[1])-Number(moving.from[1]))*-1.1*moveProgress]:[0,0,0]}/>}
    {legal.includes(sq)&&!p&&<mesh position={[0,.02,0]}><cylinderGeometry args={[.11,.11,.035,16]}/><meshStandardMaterial color="#d4a72c" emissive="#8b6b32" emissiveIntensity={.8}/></mesh>}
    {isFrom&&<mesh position={[0,.13,0]}><ringGeometry args={[.28,.34,24]}/><meshStandardMaterial color="#e2b63d" emissive="#9b6b18" emissiveIntensity={1.2}/></mesh>}
-   {moving?.to===sq&&<mesh position={[0,.16,0]}><ringGeometry args={[.34,.48,32]}/><meshStandardMaterial color="#ff8a3d" emissive="#ff5a1f" emissiveIntensity={2.5} transparent opacity={.75}/></mesh>}}
+   {moving?.to===sq&&<mesh position={[0,.16,0]}><ringGeometry args={[.34,.48,32]}/><meshStandardMaterial color="#ff8a3d" emissive="#ff5a1f" emissiveIntensity={2.5} transparent opacity={.75}/></mesh>}
  </group>})}</group>
 }
 export default function App(){
