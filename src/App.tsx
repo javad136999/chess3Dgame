@@ -6,12 +6,12 @@ import { newGame, statusText } from './game/chess';
 import { ensureGuestSession, createRoom, joinRoom, getRoom, subscribeRoom, savePosition } from './game/online';
 import './styles.css';
 
-function Piece({p,attack,selected}:{p:any,attack:boolean,selected:boolean}){
+function Piece({p,attack,selected,travel=[0,0,0]}:{p:any,attack:boolean,selected:boolean,travel?:[number,number,number]}){
  const dark=p.color==='b', ref=useRef<any>(null);
  useFrame(({clock})=>{if(!ref.current)return;const t=clock.getElapsedTime();const bob=Math.sin(t*(p.type==='p'?4:2.2))*(p.type==='p'?.035:.015);ref.current.position.y=bob;ref.current.rotation.z=attack?Math.sin(t*16)*.1:0;const base=selected?1.08:1;ref.current.scale.setScalar(base+(attack?.05:0));});
  const body=dark?'#242630':'#e8dfca', metal=dark?'#11131a':'#d5c6a6', gold='#d2a52f', skin=dark?'#36313a':'#8f6d4b';
  const spear=<><mesh position={[0,.92,.32]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.028,.028,.9,10]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh><mesh position={[0,1.39,.32]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.08,.25,8]}/><meshStandardMaterial color={metal} metalness={.7}/></mesh></>;
- return <group ref={ref}>
+ return <group ref={ref} position={travel}>
   <mesh position={[0,.1,0]}><cylinderGeometry args={[.4,.5,.2,28]}/><meshStandardMaterial color={metal} metalness={.75} roughness={.22}/></mesh>
   {p.type==='b'?<group>
     <mesh position={[0,.48,0]} scale={[1.2,.82,1.35]}><sphereGeometry args={[.36,24,16]}/><meshStandardMaterial color={skin} roughness={.75}/></mesh>
@@ -40,7 +40,7 @@ function Piece({p,attack,selected}:{p:any,attack:boolean,selected:boolean}){
 }
 function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,locked?:boolean}){
  const [sel,setSel]=useState<string|null>(null);
- const [moving,setMoving]=useState<string|null>(null);
+ const [moving,setMoving]=useState<{from:string,to:string,capture:boolean}|null>(null);
  const legal=useMemo(()=>sel?game.moves({square:sel as any,verbose:true}).map((m:any)=>m.to):[],[game,sel]);
  const squares=useMemo(()=>{const a:any[]=[];for(let r=7;r>=0;r--)for(let c=0;c<8;c++){const sq=String.fromCharCode(97+c)+(r+1);a.push({sq,p:game.get(sq as any)});}return a},[game]);
  const click=(sq:string)=>{if(locked||moving)return;const p=game.get(sq as any);
@@ -50,15 +50,17 @@ function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,loc
     const g=new Chess(game.fen());const piece=g.get(sel as any);
     const promotion=piece?.type==='p'&&(sq[1]==='8'||sq[1]==='1')?'q':undefined;
     g.move({from:sel,to:sq,...(promotion?{promotion}:{})});
-    setMoving(sel+'-'+sq);setSel(null);
-    window.setTimeout(()=>{setMoving(null);onMove(g)},220);
+    const capture=Boolean(g.get(sq as any) && g.get(sq as any)?.color!==piece?.color);
+    setMoving({from:sel,to:sq,capture});setSel(null);
+    window.setTimeout(()=>{setMoving(null);onMove(g)},420);
    }catch{if(p?.color===game.turn())setSel(sq);else setSel(null)}
  };
- return <group>{squares.map(({sq,p},i)=>{const x=(i%8)-3.5,z=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;const isFrom=moving?.startsWith(sq+'-');return <group key={sq} position={[x*1.1,0,z*1.1]} onClick={()=>click(sq)}>
+ return <group>{squares.map(({sq,p},i)=>{const x=(i%8)-3.5,z=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;const isFrom=moving?.from===sq;const isCaptured=moving?.capture&&moving.to===sq;return <group key={sq} position={[x*1.1,0,z*1.1]} onClick={()=>click(sq)}>
    <mesh position={[0,-.08,0]}><boxGeometry args={[1.05,.16,1.05]}/><meshStandardMaterial color={sel===sq?'#d4a72c':legal.includes(sq)?'#708f58':light?'#d8c29b':'#3b2d25'}/></mesh>
    {p&&<Piece p={p} attack={legal.includes(sq)} selected={sel===sq}/>}
    {legal.includes(sq)&&!p&&<mesh position={[0,.02,0]}><cylinderGeometry args={[.11,.11,.035,16]}/><meshStandardMaterial color="#d4a72c" emissive="#8b6b32" emissiveIntensity={.8}/></mesh>}
    {isFrom&&<mesh position={[0,.13,0]}><ringGeometry args={[.28,.34,24]}/><meshStandardMaterial color="#e2b63d" emissive="#9b6b18" emissiveIntensity={1.2}/></mesh>}
+   {moving?.to===sq&&<mesh position={[0,.16,0]}><ringGeometry args={[.34,.48,32]}/><meshStandardMaterial color="#ff8a3d" emissive="#ff5a1f" emissiveIntensity={2.5} transparent opacity={.75}/></mesh>}}
  </group>})}</group>
 }
 export default function App(){
