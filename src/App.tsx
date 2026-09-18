@@ -15,7 +15,7 @@ function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,atta
  const model=useMemo(()=>SkeletonUtils.clone(gltf.scene),[gltf.scene]);
  const {actions}=useAnimations(gltf.animations,root);
  useEffect(()=>{const names=Object.keys(actions||{}); const idle=names.find(n=>/idle|stand/i.test(n)); if(idle&&actions[idle]){actions[idle].reset().fadeIn(.2).play();return ()=>{actions[idle]?.fadeOut(.15)}}},[actions]);
- useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);root.current.rotation.y=attack?(attackAngle+.22*strike):attackAngle;root.current.rotation.x=attack?-.18*strike:0});
+ useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);const facing=dark?0:Math.PI;\n  root.current.rotation.y=facing+(attack?(attackAngle+.22*strike):0);root.current.rotation.x=attack?-.18*strike:0});
  return <group ref={root} scale={.52} position={[0,.02,0]}><primitive object={model}/><group position={[0,.85,.08]} rotation={[Math.PI/2,0,0]}><mesh><cylinderGeometry args={[.018,.018,.72,8]}/><meshStandardMaterial color={dark?'#d7b35a':'#caa13e'} metalness={.8}/></mesh><mesh position={[0,.39,0]}><coneGeometry args={[.055,.16,8]}/><meshStandardMaterial color={dark?'#b8bcc8':'#ece5d2'} metalness={.7}/></mesh></group></group>;
 }
 useGLTF.preload(REAL_PAWN_MODEL);
