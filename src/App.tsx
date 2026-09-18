@@ -61,18 +61,27 @@ function Piece({p,attack,selected}:{p:any,attack:boolean,selected:boolean}){
 }
 function Board({game,onMove,locked=false}:{game:Chess,onMove:(g:Chess)=>void,locked?:boolean}){
  const [sel,setSel]=useState<string|null>(null);
+ const [moving,setMoving]=useState<string|null>(null);
  const legal=useMemo(()=>sel?game.moves({square:sel as any,verbose:true}).map((m:any)=>m.to):[],[game,sel]);
- const squares=useMemo(()=>{const a:any[]=[];for(let r=7;r>=0;r--)for(let c=0;c<8;c++){const s=String.fromCharCode(97+c)+(r+1);a.push({s,p:game.get(s as any)});}return a},[game]);
- const click=(s:string)=>{if(locked)return;const p=game.get(s as any);if(!sel){if(p?.color===game.turn())setSel(s);return}
-   if(sel===s){setSel(null);return}
-   try{const g=new Chess(game.fen());const moving=g.get(sel as any);const promotion=moving?.type==='p'&&(s[1]==='8'||s[1]==='1')?'q':undefined;g.move({from:sel,to:s,...(promotion?{promotion}: {})});setSel(null);onMove(g)}
-   catch{if(p?.color===game.turn())setSel(s);else setSel(null)}};
- return <group>{squares.map(({s,p},i)=>{const x=(i%8)-3.5,y=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;return <group key={s} position={[x*1.1,0,y*1.1]} onClick={()=>click(s)}>
-   <mesh position={[0,-.08,0]}><boxGeometry args={[1.05,.16,1.05]}/><meshStandardMaterial color={sel===s?'#d4a72c':legal.includes(s)?'#708f58':light?'#d8c29b':'#3b2d25'}/></mesh>
-   {p&&<Piece p={p} attack={legal.includes(s)} selected={sel===s}/>}
-   {legal.includes(s)&&!p&&<mesh position={[0,.02,0]}><cylinderGeometry args={[.11,.11,.035,16]}/><meshStandardMaterial color="#d4a72c" emissive="#8b6b32" emissiveIntensity={.8}/></mesh>}
- </group>})}</group>}
-
+ const squares=useMemo(()=>{const a:any[]=[];for(let r=7;r>=0;r--)for(let c=0;c<8;c++){const sq=String.fromCharCode(97+c)+(r+1);a.push({sq,p:game.get(sq as any)});}return a},[game]);
+ const click=(sq:string)=>{if(locked||moving)return;const p=game.get(sq as any);
+   if(!sel){if(p?.color===game.turn())setSel(sq);return}
+   if(sel===sq){setSel(null);return}
+   try{
+    const g=new Chess(game.fen());const piece=g.get(sel as any);
+    const promotion=piece?.type==='p'&&(sq[1]==='8'||sq[1]==='1')?'q':undefined;
+    g.move({from:sel,to:sq,...(promotion?{promotion}:{})});
+    setMoving(sel+'-'+sq);setSel(null);
+    window.setTimeout(()=>{setMoving(null);onMove(g)},220);
+   }catch{if(p?.color===game.turn())setSel(sq);else setSel(null)}
+ };
+ return <group>{squares.map(({sq,p},i)=>{const x=(i%8)-3.5,z=Math.floor(i/8)-3.5;const light=(i+Math.floor(i/8))%2===0;const isFrom=moving?.startsWith(sq+'-');return <group key={sq} position={[x*1.1,0,z*1.1]} onClick={()=>click(sq)}>
+   <mesh position={[0,-.08,0]}><boxGeometry args={[1.05,.16,1.05]}/><meshStandardMaterial color={sel===sq?'#d4a72c':legal.includes(sq)?'#708f58':light?'#d8c29b':'#3b2d25'}/></mesh>
+   {p&&<Piece p={p} attack={legal.includes(sq)} selected={sel===sq}/>}
+   {legal.includes(sq)&&!p&&<mesh position={[0,.02,0]}><cylinderGeometry args={[.11,.11,.035,16]}/><meshStandardMaterial color="#d4a72c" emissive="#8b6b32" emissiveIntensity={.8}/></mesh>}
+   {isFrom&&<mesh position={[0,.13,0]}><ringGeometry args={[.28,.34,24]}/><meshStandardMaterial color="#e2b63d" emissive="#9b6b18" emissiveIntensity={1.2}/></mesh>}
+ </group>})}</group>
+}
 export default function App(){
  const[game,setGame]=useState(newGame);const[mode,setMode]=useState<'offline'|'online'>('offline');const[room,setRoom]=useState('');const[roomId,setRoomId]=useState<string|null>(null);const[playerId,setPlayerId]=useState<string|null>(null);const[playerColor,setPlayerColor]=useState<'w'|'b'|null>(null);const[msg,setMsg]=useState('');const[timer,setTimer]=useState({w:600,b:600});const last=useRef(Date.now());
  useEffect(()=>{const code=new URLSearchParams(window.location.search).get('room');if(code){setMode('online');setRoom(code)}},[]);
