@@ -7,7 +7,7 @@ import { newGame, statusText } from './game/chess';
 import { ensureGuestSession, createRoom, joinRoom, getRoom, subscribeRoom, savePosition } from './game/online';
 import './styles.css';
 
-const REAL_PAWN_MODEL='https://raw.githubusercontent.com/rpwalsh/encounter-lab/main/src/EncounterLab.Web/public/models/Knight.glb';
+const REAL_PAWN_MODEL='/models/knight.glb';
 
 function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,attack=false}:{attackProgress?:number,attackAngle?:number,travel?:[number,number,number],dark?:boolean,attack?:boolean}){
  const gltf=useGLTF(REAL_PAWN_MODEL) as any;
@@ -18,7 +18,7 @@ function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,atta
  useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);const facing=dark?0:Math.PI;
   root.current.rotation.y=facing+(attack?(attackAngle+.22*strike):0);root.current.rotation.x=attack?-.18*strike:0});
  const steel=dark?'#191c25':'#d7d8d4', edge=dark?'#a87432':'#b58b32', cloth=dark?'#10131b':'#eee7d5', glow=dark?'#ff9d2f':'#ffd36a';
- return <group ref={root} scale={.48} position={[0,.02,0]}>
+ return <group ref={root} scale={.82} position={[0,.02,0]}>
   <primitive object={model}/>
   <group position={[0,.92,.13]} rotation={[Math.PI/2,0,0]}>
    <mesh><cylinderGeometry args={[.022,.022,.72,10]}/><meshStandardMaterial color={edge} metalness={.9} roughness={.22}/></mesh>
