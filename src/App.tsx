@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Html } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Html, useGLTF, useAnimations } from '@react-three/drei';
+import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { Chess } from 'chess.js';
 import { newGame, statusText } from './game/chess';
 import { ensureGuestSession, createRoom, joinRoom, getRoom, subscribeRoom, savePosition } from './game/online';
 import './styles.css';
+
+const REAL_PAWN_MODEL='https://raw.githubusercontent.com/rpwalsh/encounter-lab/main/src/EncounterLab.Web/public/models/Knight.glb';
+
+function RealPawn({attackProgress=0,attackAngle=0,travel=[0,0,0],dark=false,attack=false}:{attackProgress?:number,attackAngle?:number,travel?:[number,number,number],dark?:boolean,attack?:boolean}){
+ const gltf=useGLTF(REAL_PAWN_MODEL) as any;
+ const root=useRef<any>(null);
+ const model=useMemo(()=>SkeletonUtils.clone(gltf.scene),[gltf.scene]);
+ const {actions}=useAnimations(gltf.animations,root);
+ useEffect(()=>{const names=Object.keys(actions||{}); const idle=names.find(n=>/idle|stand/i.test(n)); if(idle&&actions[idle]){actions[idle].reset().fadeIn(.2).play();return ()=>{actions[idle]?.fadeOut(.15)}}},[actions]);
+ useFrame(()=>{if(!root.current)return;const q=Math.max(0,Math.min(1,attackProgress));const strike=Math.sin(q*Math.PI);const lunge=Math.sin(Math.min(q/.65,1)*Math.PI/2);root.current.position.set(travel[0]+(attack?.28*lunge:0),travel[1],travel[2]);root.current.rotation.y=attack?(attackAngle+.22*strike):attackAngle;root.current.rotation.x=attack?-.18*strike:0});
+ return <group ref={root} scale={.52} position={[0,.02,0]}><primitive object={model}/><group position={[0,.85,.08]} rotation={[Math.PI/2,0,0]}><mesh><cylinderGeometry args={[.018,.018,.72,8]}/><meshStandardMaterial color={dark?'#d7b35a':'#caa13e'} metalness={.8}/></mesh><mesh position={[0,.39,0]}><coneGeometry args={[.055,.16,8]}/><meshStandardMaterial color={dark?'#b8bcc8':'#ece5d2'} metalness={.7}/></mesh></group></group>;
+}
+useGLTF.preload(REAL_PAWN_MODEL);
 
 function Piece({p,attack,selected,travel=[0,0,0],attackProgress=0,attackAngle=0}:{p:any,attack:boolean,selected:boolean,travel?:[number,number,number],attackProgress?:number,attackAngle?:number}){
  const dark=p.color==='b', ref=useRef<any>(null), combat=useRef<any>(null);
@@ -24,6 +38,7 @@ function Piece({p,attack,selected,travel=[0,0,0],attackProgress=0,attackAngle=0}
   }
  });
  const body=dark?'#242630':'#e8dfca',metal=dark?'#11131a':'#d5c6a6',gold='#d2a52f',skin=dark?'#36313a':'#8f6d4b';
+ if(p.type==='p') return <group ref={ref} position={travel}><RealPawn attackProgress={attackProgress} attackAngle={attackAngle} travel={[0,0,0]} dark={dark} attack={attack}/>{attack&&<Html center position={[0,1.5,0]}><span className="hit">⚔</span></Html>}</group>;
  const spear=<><mesh position={[0,.92,.32]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.028,.028,.9,10]}/><meshStandardMaterial color={gold} metalness={.8}/></mesh><mesh position={[0,1.39,.32]} rotation={[Math.PI/2,0,0]}><coneGeometry args={[.08,.25,8]}/><meshStandardMaterial color={metal} metalness={.7}/></mesh></>;
  return <group ref={ref} position={travel}><group ref={combat}>
   <mesh position={[0,.1,0]}><cylinderGeometry args={[.4,.5,.2,28]}/><meshStandardMaterial color={metal} metalness={.75} roughness={.22}/></mesh>
